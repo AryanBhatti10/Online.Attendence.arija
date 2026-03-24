@@ -181,12 +181,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyAniPBRSs-XxX5S6Ow2etIYhNNcsma2A1Q",
-authDomain: "smart-attendence-3167b.firebaseapp.com",
-projectId: "smart-attendence-3167b",
-storageBucket: "smart-attendence-3167b.appspot.com",
-messagingSenderId: "894029161535",
-appId: "1:894029161535:web:3e0749629d7389dc85048a"
+  apiKey: import.meta.env.VITE_API_KEY,
+  authDomain: import.meta.env.VITE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);
