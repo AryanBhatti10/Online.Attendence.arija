@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Smart Attendance System</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+body{
+font-family:Arial;
+margin:0;
+padding:0;
+text-align:center;
+background:linear-gradient(-45deg,#ff9a9e,#fad0c4,#a18cd1,#84fab0);
+background-size:400% 400%;
+animation:bg 10s infinite alternate;
+}
+@keyframes bg{
+0%{background-position:0% 50%;}
+100%{background-position:100% 50%;}
+}
+h1{color:white;margin-top:20px;}
+
+.container{
+width:95%;
+max-width:420px;
+margin:auto;
+padding:20px;
+margin-top:20px;
+background:rgba(255,255,255,0.25);
+backdrop-filter:blur(10px);
+border-radius:15px;
+box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+input,select{
+width:90%;
+padding:10px;
+margin:8px;
+border-radius:8px;
+border:none;
+}
+
+button{
+padding:12px;
+margin:8px;
+border:none;
+border-radius:8px;
+color:white;
+font-weight:bold;
+cursor:pointer;
+width:90%;
+}
+
+.cameraBtn{background:#ff7b00;}
+.captureBtn{background:#ff3d68;}
+.attendBtn{background:#28a745;}
+.filterBtn{background:#007bff;}
+.excelBtn{background:#16a085;}
+.pdfBtn{background:#c0392b;}
+
+video{width:100%;max-width:260px;border-radius:10px;}
+img{width:60px;border-radius:6px;}
+
+table{
+width:100%;
+margin-top:20px;
+border-collapse:collapse;
+background:white;
+display:block;
+overflow-x:auto;
+}
+th{background:#667eea;color:white;padding:10px;}
+td{padding:8px;border-bottom:1px solid #ddd;}
+</style>
+</head>
+
+<body>
+
+<h1>📚 Smart Attendance System</h1>
+
+<div class="container">
+
+<select id="department">
+<option value="">Department</option>
+<option>BA</option><option>BCA</option><option>BBA</option><option>BCOM</option><option>BSC</option>
+</select>
+
+<select id="year">
+<option value="">Year</option>
+<option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
+</select>
+
+<input type="text" id="name" placeholder="Student Name">
+<input type="text" id="roll" placeholder="Roll Number">
+
+<select id="lecture">
+<option value="">Lecture</option>
+<option>9:00 - 9:40</option>
+<option>9:40 - 10:20</option>
+<option>10:20 - 11:00</option>
+<option>11:00 - 11:40</option>
+<option>11:40 - 12:20</option>
+<option>12:20 - 1:00</option>
+<option>1:00 - 1:40</option>
+<option>1:40 - 2:20</option>
+<option>2:20 - 3:00</option>
+</select>
+
+<button class="cameraBtn" onclick="openCamera()">Open Camera</button>
+<video id="video" autoplay></video>
+<button class="captureBtn" onclick="takePhoto()">Capture</button>
+<img id="preview">
+<canvas id="canvas" style="display:none;"></canvas>
+
+<button class="attendBtn" onclick="markAttendance()">Mark Attendance</button>
+
+</div>
+
+<br>
+
+<select id="filterDept">
+<option value="all">All Department</option>
+<option>BA</option>
+<option>BCA</option>
+<option>BBA</option>
+<option>BCOM</option>
+<option>BSC</option>
+</select>
+
+<select id="filterYear">
+<option value="all">All Year</option>
+<option>1st Year</option>
+<option>2nd Year</option>
+<option>3rd Year</option>
+<option>4th Year</option>
+</select>
+
+<select id="filterlecture">
+<option value="">All Lecture</option>
+<option>9:00 - 9:40</option>
+<option>9:40 - 10:20</option>
+<option>10:20 - 11:00</option>
+<option>11:00 - 11:40</option>
+<option>11:40 - 12:20</option>
+<option>12:20 - 1:00</option>
+<option>1:00 - 1:40</option>
+<option>1:40 - 2:20</option>
+<option>2:20 - 3:00</option>
+</select>
+
+
+
+<input type="date" id="fromDate">
+<input type="date" id="toDate">
+
+<button class="filterBtn" onclick="filterRecord()">Show Record</button>
+<button class="excelBtn" onclick="downloadExcel()">Excel</button>
+<button class="pdfBtn" onclick="downloadPDF()">PDF</button>
+
+<h3 style="color:white;">Attendance Record</h3>
+
+<table id="attendanceTable">
+<tr>
+<th>Department</th>
+<th>Year</th>
+<th>Name</th>
+<th>Roll</th>
+<th>Lecture</th>
+<th>Photo</th>
+<th>Date</th>
+</tr>
+</table>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyAniPBRSs-XxX5S6Ow2etIYhNNcsma2A1Q",
+authDomain: "smart-attendence-3167b.firebaseapp.com",
+projectId: "smart-attendence-3167b",
+storageBucket: "smart-attendence-3167b.appspot.com",
+messagingSenderId: "894029161535",
+appId: "1:894029161535:web:3e0749629d7389dc85048a"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let photoData="";
+let videoStream=null;
+
+window.onload=loadData;
+
+function downloadExcel(){
+
+let table = document.getElementById("attendanceTable");
+let rows = table.querySelectorAll("tr");
+
+let csv = [];
+
+rows.forEach((row) => {
+
+if(row.style.display === "none") return;
+
+let cols = row.querySelectorAll("td, th");
+let rowData = [];
+
+cols.forEach((col, index) => {
+
+let text = col.innerText.replace(/"/g, '""');
+
+if(index === 5){
+text = "Photo";
+}
+
+rowData.push(`"${text}"`);
+
+});
+
+csv.push(rowData.join(","));
+});
+
+let blob = new Blob([csv.join("\n")], { type: "text/csv;charset=utf-8;" });
+
+let link = document.createElement("a");
+link.href = URL.createObjectURL(blob);
+link.download = "attendance.csv";
+
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+}
+
+async function downloadPDF(){
+
+const { jsPDF } = window.jspdf;
+const pdf = new jsPDF();
+
+// full table capture (including photo)
+const canvas = await html2canvas(document.getElementById("attendanceTable"));
+
+const imgData = canvas.toDataURL("image/png");
+
+const imgWidth = 190;
+const pageHeight = 295;
+const imgHeight = canvas.height * imgWidth / canvas.width;
+
+let heightLeft = imgHeight;
+let position = 0;
+
+pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+heightLeft -= pageHeight;
+
+while (heightLeft > 0) {
+    position = heightLeft - imgHeight;
+    pdf.addPage();
+    pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+}
+
+pdf.save("attendance.pdf");
+}
+
+function openCamera(){
+navigator.mediaDevices.getUserMedia({video:true})
+.then(stream=>{
+videoStream=stream;
+document.getElementById("video").srcObject=stream;
+})
+.catch(err=>alert("Camera Error "+err));
+}
+
+function takePhoto(){
+const video=document.getElementById("video");
+const canvas=document.getElementById("canvas");
+
+canvas.width=video.videoWidth;
+canvas.height=video.videoHeight;
+
+const ctx=canvas.getContext("2d");
+ctx.drawImage(video,0,0);
+
+photoData=canvas.toDataURL("image/jpeg",0.6);
+document.getElementById("preview").src=photoData;
+
+if(videoStream){
+videoStream.getTracks().forEach(track=>track.stop());
+document.getElementById("video").srcObject=null;
+}
+}
+
+// ✅ FIXED ADD ROW
+function addRow(dept,year,name,roll,lecture,photo,date){
+
+const table=document.getElementById("attendanceTable");
+const row=table.insertRow();
+
+row.insertCell(0).innerHTML=dept;
+row.insertCell(1).innerHTML=year;
+row.insertCell(2).innerHTML=name;
+row.insertCell(3).innerHTML=roll;
+row.insertCell(4).innerHTML=lecture;
+row.insertCell(5).innerHTML="<img src='"+photo+"'>";
+
+const cell = row.insertCell(6);
+cell.innerHTML = new Date(date).toLocaleString();
+cell.setAttribute("data-date", new Date(date).toISOString());
+
+}
+
+// ✅ FIXED MARK ATTENDANCE
+async function markAttendance(){
+
+const dept=document.getElementById("department").value;
+const year=document.getElementById("year").value;
+const name=document.getElementById("name").value;
+const roll=document.getElementById("roll").value;
+const lecture=document.getElementById("lecture").value;
+
+if(!dept||!year||!name||!roll||!lecture){
+alert("Fill all fields");
+return;
+}
+
+if(!photoData){
+alert("Capture photo first");
+return;
+}
+
+const now = new Date();
+const dateTime = now.toISOString();
+const today = now.toISOString().split("T")[0];
+
+const q=query(
+collection(db,"attendance"),
+where("roll","==",roll),
+where("lecture","==",lecture),
+where("dateOnly","==",today)
+);
+
+const snapshot=await getDocs(q);
+
+if(!snapshot.empty){
+alert("Attendance already marked");
+return;
+}
+
+await addDoc(collection(db,"attendance"),{
+department:dept,
+year:year,
+name:name,
+roll:roll,
+lecture:lecture,
+photo:photoData,
+date:dateTime,
+dateOnly:today
+});
+
+addRow(dept,year,name,roll,lecture,photoData,dateTime);
+
+alert("Saved");
+
+}
+
+// LOAD DATA
+async function loadData(){
+const querySnapshot=await getDocs(collection(db,"attendance"));
+
+querySnapshot.forEach(doc=>{
+const d=doc.data();
+addRow(d.department,d.year,d.name,d.roll,d.lecture,d.photo,d.date);
+});
+}
+
+// ✅ FINAL FILTER
+function filterRecord(){
+
+const dept=document.getElementById("filterDept").value;
+const year=document.getElementById("filterYear").value;
+const lecture=document.getElementById("filterlecture").value;
+
+const fromDate=document.getElementById("fromDate").value;
+const toDate=document.getElementById("toDate").value;
+
+const rows=document.querySelectorAll("#attendanceTable tr");
+
+rows.forEach((row,i)=>{
+
+if(i==0) return;
+
+const rDept=row.cells[0].innerText;
+const rYear=row.cells[1].innerText;
+const rLecture=row.cells[4].innerText;
+
+const isoDate = row.cells[6].getAttribute("data-date");
+const rowDate = new Date(isoDate);
+
+let matchDate = true;
+
+if(fromDate && toDate){
+const start = new Date(fromDate);
+const end = new Date(toDate);
+end.setHours(23,59,59,999);
+
+matchDate = (rowDate >= start && rowDate <= end);
+}
+
+if(
+(dept=="all"||dept==rDept) &&
+(year=="all"||year==rYear) &&
+(lecture==""||lecture==rLecture) &&
+matchDate
+){
+row.style.display="";
+}else{
+row.style.display="none";
+}
+
+});
+
+}
+
+window.openCamera=openCamera;
+window.takePhoto=takePhoto;
+window.markAttendance=markAttendance;
+window.filterRecord=filterRecord;
+window.downloadExcel = downloadExcel;
+window.downloadPDF = downloadPDF;
+
+</script>
+
+</body>
+</html>
