@@ -7,26 +7,74 @@
 
 <style>
 body{
-    font-family:Arial;
+    font-family: 'Segoe UI', sans-serif;
     margin:0;
     padding:0;
     text-align:center;
-    background:linear-gradient(120deg,#84fab0,#8fd3f4);
+    background: linear-gradient(-45deg,#84fab0,#8fd3f4,#a18cd1,#fbc2eb);
+    background-size:400% 400%;
+    animation: bg 10s infinite alternate;
+}
+
+@keyframes bg{
+0%{background-position:0% 50%;}
+100%{background-position:100% 50%;}
 }
 
 .container{
-    margin-top:50px;
-    padding:20px;
+    margin:40px auto;
+    padding:25px;
+    width:90%;
+    max-width:500px;
+    background:rgba(255,255,255,0.25);
+    backdrop-filter: blur(12px);
+    border-radius:15px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+h1{
+    color:#fff;
+    margin-bottom:10px;
+}
+
+p{
+    color:#fff;
+    font-size:15px;
+    line-height:1.6;
+}
+
+.dev-list{
+    margin-top:20px;
+}
+
+.dev{
+    background:rgba(255,255,255,0.3);
+    margin:8px 0;
+    padding:10px;
+    border-radius:8px;
+    color:#222;
+    font-weight:bold;
+    transition:0.3s;
+}
+
+.dev:hover{
+    background:#fff;
+    transform:scale(1.05);
 }
 
 a{
     display:inline-block;
     margin-top:20px;
-    padding:10px 15px;
-    background:#333;
+    padding:12px 18px;
+    background:#222;
     color:white;
     text-decoration:none;
     border-radius:8px;
+    transition:0.3s;
+}
+
+a:hover{
+    background:#000;
 }
 </style>
 </head>
@@ -35,16 +83,22 @@ a{
 
 <div class="container">
 
-<h1>About Smart Attendance System</h1>
+<h1>📘 About Smart Attendance</h1>
 
 <p>
-This Smart Attendance System allows teachers to mark attendance using camera,
-store data in Firebase, and export records in Excel and PDF format.
+This Smart Attendance System helps teachers easily mark attendance using camera,
+store records in Firebase, and download reports in Excel and PDF format.
 </p>
 
-<p>
-Developed by: Your Name
-</p>
+<h3 style="color:white;">👨‍💻 Developed By</h3>
+
+<div class="dev-list">
+    <div class="dev">ARYAN BHATTI</div>
+    <div class="dev">AMAN</div>
+    <div class="dev">BHANU</div>
+    <div class="dev">KULDEEP GOUR</div>
+    <div class="dev">HARSH</div>
+</div>
 
 <a href="index.html">⬅ Back to Home</a>
 
